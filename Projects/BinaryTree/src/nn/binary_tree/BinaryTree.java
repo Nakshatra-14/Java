@@ -1,7 +1,15 @@
 package nn.binary_tree;
 
-public class BinaryTree<T> {
+import java.util.StringJoiner;
 
+import pb.dsa.treeprinter.BinaryTreePrinter;
+import pb.dsa.treeprinter.PrintableBinTree;
+
+// import pb.dsa.treeprinter.BinaryTreePrinter;
+// import pb.dsa.treeprinter.PrintableBinTree;
+
+public class BinaryTree<T> implements PrintableBinTree<T>
+{
     private T data;
     private BinaryTree<T> left;
     private BinaryTree<T> right;
@@ -34,56 +42,56 @@ public class BinaryTree<T> {
         }
     }
 
-    private static <T> void inOrderToString(StringBuilder sb, BinaryTree<T> t)
+    private static <T> void inOrderToString(StringJoiner sj, BinaryTree<T> t)
     {
         if(t != null)
         {
-            inOrderToString(sb, t.left);
-            sb.append(t.data);
-            inOrderToString(sb, t.right);
+            inOrderToString(sj, t.left);
+            sj.add(t.data.toString());
+            inOrderToString(sj, t.right);
         }
         // return sb.toString();
     }
 
     public String inOrderToString()
     {
-        StringBuilder sb = new StringBuilder();
-        inOrderToString(sb, this);
-        return sb.toString();
+        StringJoiner sj = new StringJoiner(", ");
+        inOrderToString(sj, this);
+        return sj.toString();
     } 
 
-    private static <T> void preOrderToString(StringBuilder sb, BinaryTree<T> t)
+    private static <T> void preOrderToString(StringJoiner sj, BinaryTree<T> t)
     {
         if(t != null)
         {
-            sb.append(t.data);
-            preOrderToString(sb, t.left);
-            preOrderToString(sb, t.right);
+            sj.add(t.data.toString());
+            preOrderToString(sj, t.left);
+            preOrderToString(sj, t.right);
         }
         // return sb.toString();
     }
 
     public String preOrderToString()
     {
-        StringBuilder sb = new StringBuilder();
+        StringJoiner sb = new StringJoiner(", ");
         preOrderToString(sb, this);
         return sb.toString();
     } 
 
-    private static <T> void postOrderToString(StringBuilder sb, BinaryTree<T> t)
+    private static <T> void postOrderToString(StringJoiner sj, BinaryTree<T> t)
     {
         if(t != null)
         {
-            postOrderToString(sb, t.left);
-            postOrderToString(sb, t.right);
-            sb.append(t.data);
+            postOrderToString(sj, t.left);
+            postOrderToString(sj, t.right);
+            sj.add(t.data.toString());
         }
         // return sb.toString();
     }
 
     public String postOrderToString()
     {
-        StringBuilder sb = new StringBuilder();
+        StringJoiner sb = new StringJoiner(", ");
         postOrderToString(sb, this);
         return sb.toString();
     } 
@@ -132,34 +140,43 @@ public class BinaryTree<T> {
 
     public static <T> BinaryTree<T> reconstuctionPreIn(T pre[], int preLb, int preUb, T in[], int inLb, int inUb)
     {
-        if(preLb > preUb || preLb >= pre.length || preUb < 0)
+        if(preLb > preUb)
             return null;
 
-        BinaryTree<T> root = new BinaryTree<T>(pre[0]);
+        BinaryTree<T> root = new BinaryTree<T>(pre[preLb]);
         int index = 0;
         for(int i = inLb ; i <= inUb ; i++)
         {
-            if(in[i].equals(pre[0]))
+            if(in[i].equals(pre[preLb]))
             {
                 index = i;
                 break;
             }
         }
+        int n = index - inLb;
 
-        root.left = reconstuctionPreIn(pre, preLb+1, index+1, in, inLb, index-1);
-        root.right = reconstuctionPreIn(pre, index+2, preUb, in, index+1, inUb);
+        
+        root.left = reconstuctionPreIn(pre, preLb+1, preLb + n, in, inLb, index-1);
+        root.right = reconstuctionPreIn(pre, preLb+n+1, preUb, in, index+1, inUb);
 
         return root;
     }
 
+    public static <T> BinaryTree<T> reconstuctionPreIn(T pre[], T in[])
+    {
+        return reconstuctionPreIn(pre, 0, pre.length-1, in, 0, in.length-1);
+    }
 
     public static <T> BinaryTree<T> reconstuctionPostIn(T post[], int postLb, int postUb, T in[], int inLb, int inUb)
     {
-        BinaryTree<T> root = new BinaryTree<T>(post[post.length-1]);
+        if(postLb > postUb)
+            return null;
+
+        BinaryTree<T> root = new BinaryTree<T>(post[postUb]);
         int index = 0;
         for(int i = inLb ; i <= inUb ; i++)
         {
-            if(in[i].equals(post[post.length-1]))
+            if(in[i].equals(post[postUb]))
             {
                 index = i;
                 break;
@@ -167,13 +184,21 @@ public class BinaryTree<T> {
         }
 
         root.left = reconstuctionPostIn(post, postLb, index-1, in, inLb, index-1);
-        // root.right = reconstuctionPostIn(post, postLb, postUb, in, inLb, inUb);
+        root.right = reconstuctionPostIn(post, index, postUb-1, in, index+1, inUb);
 
         return root;
     }
 
+    public static <T> BinaryTree<T> reconstuctionPostIn(T post[], T in[])
+    {
+        return reconstuctionPostIn(post, 0, post.length-1, in, 0, in.length-1);
+    }
     
-
+    public void print()
+    {
+        BinaryTreePrinter.printBothSided(this);
+    }
+    
     public static void main(String[] args) {
         BinaryTree<Character> treeOne = createTreeOne();
         // System.out.println("Preorder :" + preOrderToString(treeOne));
@@ -191,12 +216,45 @@ public class BinaryTree<T> {
         Integer preOrder[] = {14, 4, 3, 9, 7, 5, 15, 18, 16, 17, 20};
         Integer inOrder[]  = {3, 4, 5, 7, 9, 14, 15, 16, 17, 18, 20};
         Integer postOrder[] ={3, 5, 7, 9, 4, 17, 16, 20, 18, 15, 14};
+
+        // Integer preOrder[] = {250, 120, 530, 650, 830, 160, 260, 190, 370};
+        // Integer inOrder[]  = {530, 650, 120, 250, 260, 160, 190, 830, 370};
+        // Integer postOrder[] ={650, 530, 120, 260, 190, 160, 370, 830, 250};
+
         // Integer preOrder[] = {20, 10, 30};
         // Integer inOrder[]  = {10, 20, 30};
 
-        BinaryTree<Integer> root = reconstuctionPreIn(preOrder, 0, preOrder.length-1, inOrder, 0, inOrder.length-1);
+        // BinaryTree<Integer> root = reconstuctionPreIn(preOrder, inOrder);
+
+        BinaryTree<Integer> root = reconstuctionPostIn(postOrder, inOrder);
+
+        System.out.println(root.preOrderToString());
         System.out.println(root);
+        System.out.println(root.postOrderToString());
         // System.out.println(root.postOrderToString());
+        root.print();
+
+    }
+
+
+
+    @Override
+    public T getData() {
+        return data;
+    }
+
+
+
+    @Override
+    public PrintableBinTree<T> getLeft() {
+        return left;
+    }
+
+
+
+    @Override
+    public PrintableBinTree<T> getRight() {
+        return right;
     }
     
 }
