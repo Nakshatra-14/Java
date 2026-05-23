@@ -198,6 +198,96 @@ public class BinaryTree<T> implements PrintableBinTree<T>
     {
         BinaryTreePrinter.printBothSided(this);
     }
+
+    // private static int getHeight(BinaryTree<T> root)
+    // {
+    //    if(root == null)
+    //     return 0;
+    
+    //    return 1 + Math.max(getHeight(root.left), getHeight(root.right));
+    // }
+
+    public int getHeight()
+    {
+        int lht, rht;
+        if(left == null)
+            lht = 0;
+        else
+            lht = left.getHeight();
+
+        if (right == null) 
+            rht = 0;
+        else
+            rht = right.getHeight();
+
+        return 1 + Math.max(lht, rht);
+    }
+
+    public int countNode()
+    {
+        int lht, rht;
+        if(left == null)
+            lht = 0;
+        else
+            lht = left.countNode();
+
+        if (right == null) 
+            rht = 0;
+        else
+            rht = right.countNode();
+
+        return 1 + lht + rht;
+    }
+
+    
+
+    @Override
+    public boolean equals(Object other)
+    {
+        return other instanceof BinaryTree t && this.data.equals(t.data) && this.left.equals(t.left) && this.right.equals(t.right);
+    }
+
+    public static <T> int getLevel(BinaryTree<T> root, BinaryTree<T> node)
+    {
+        if(root == null)
+            return -2;
+        if(root == node)
+            return 0;
+        else
+        {
+            int lvl = getLevel(root.left, node);
+            if(lvl == -2)
+                lvl = getLevel(root.right, node);
+
+            if(lvl < 0)
+                return lvl;
+            else
+                return 1 + lvl;
+        }
+    }
+
+    private static <T> BinaryTree<T> searchDataWithNode(BinaryTree<T> root, T data)
+    {
+        if(root == null)
+            return null;
+
+        else if(root.data.equals(data))
+            return root;
+        
+        else
+        {
+            BinaryTree<T> t = searchDataWithNode(root.left, data);
+            if(t == null)
+                t = searchDataWithNode(root.right, data);
+
+            return t;
+        }
+    }
+
+    public BinaryTree<T> searchDataWithNode(T data)
+    {
+        return(searchDataWithNode(this, data));
+    }
     
     public static void main(String[] args) {
         BinaryTree<Character> treeOne = createTreeOne();
@@ -224,9 +314,9 @@ public class BinaryTree<T> implements PrintableBinTree<T>
         // Integer preOrder[] = {20, 10, 30};
         // Integer inOrder[]  = {10, 20, 30};
 
-        // BinaryTree<Integer> root = reconstuctionPreIn(preOrder, inOrder);
+        BinaryTree<Integer> root = reconstuctionPreIn(preOrder, inOrder);
 
-        BinaryTree<Integer> root = reconstuctionPostIn(postOrder, inOrder);
+        // BinaryTree<Integer> root = reconstuctionPostIn(postOrder, inOrder);
 
         System.out.println(root.preOrderToString());
         System.out.println(root);
@@ -234,6 +324,17 @@ public class BinaryTree<T> implements PrintableBinTree<T>
         // System.out.println(root.postOrderToString());
         root.print();
 
+        System.out.println("Height: " + root.getHeight());
+        System.out.println("Nodes: " + root.countNode());
+
+        BinaryTree<Integer> r = root.searchDataWithNode(17);
+        if(r == null)
+            System.out.println("Cant find");
+        else
+        {
+            r.print(); 
+            System.out.println("Level: " + getLevel(root, r));
+        }
     }
 
 
